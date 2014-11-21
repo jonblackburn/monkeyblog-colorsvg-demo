@@ -1,0 +1,122 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Map Control Test</title>
+    <!-- Styles (bootstrap is used for the hover ) -->
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="./css/spectrum.css" rel="stylesheet">
+</head>
+<body>
+    
+    <div class="text-center">
+
+        <div id="demomanholder" data-svg="./resources/demoman.svg"></div>
+
+        <p><strong>Change the Color!</strong></p>
+        <p><input type="text" id='color-picker' value="#ff0000" /></p>
+        <p>&nbsp;</p>
+        <p id="messages"></p>
+    </div>
+
+    <!-- Scripts (bootstrap is used for the hover ) -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+    <!-- Spectrum is used for the color picker -->
+    <script src="./scripts/spectrum.js"></script>
+
+    <!-- Data is the data object that holds the color information as well as the popover contents -->
+    <script src="./resources/data.js"></script>
+    <script type="text/javascript">
+
+        $(function () {
+
+            var svgSource = $("#demomanholder").attr("data-svg");
+            
+            // Load up the contents of the SVG and inject them
+            // into the DOM. This is critical for full functionality.
+            $("#demomanholder").load(svgSource, function () {
+                // Removes the <div>
+                $(this).contents().unwrap();
+
+                // And the hover and click functions
+                addHandlers();
+
+                // repaint the picture
+                refreshSvg();
+            });
+
+            //Initialize the color picker
+            $("#color-picker").spectrum({
+                color: "#f00",
+                preferredFormat: "hex",
+                showInput: true,
+                showPalette: true
+            });
+
+
+            function addHandlers() {
+                $.each(liveColors, function (i, pt) {
+
+                    // format it as a jquery friendly selector
+                    var id = "#" + pt.bdpt;
+
+
+                    // Save color on click, then refresh the svg
+                    $(id).on("click", function () {
+                        var newColor = $("#color-picker").val();
+                        saveColor(pt.bdpt, newColor);
+                        $("#messages").html("<strong>Last Color:</strong> " + newColor);
+                        refreshSvg();
+                    });
+
+                    // Add a popover triggered by clicking and hovering
+                    // triggered only while hovering so it goes away on mouseout.
+                    $(id).hover(function () {
+                        $(id).popover({
+                            html: true,
+                            trigger: "hover click", 
+                            content: pt.data,
+                            title: pt.title,
+                            container: "body",
+                            template: '<div class="popover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'
+                        });
+                    });
+                });
+            }
+
+            function refreshSvg() {
+
+                $.each(liveColors, function (i, pt) {
+
+                    // format it as a jquery friendly selector
+                    var id = "#" + pt.bdpt;
+                    
+                    // Note this style matches on all elements (well enough)
+                    // so, for this example I didn't want to get into the weeds 
+                    // deep enough to replace the string properly.
+                    $(id).attr("style", "fill:" + pt.color +
+                        ";fill-opacity:1;stroke:#000000;stroke-width:3.92386484;" +
+                        "stroke-miterlimit:9.77358532;stroke-opacity:1;stroke-dasharray:none");
+
+                });
+
+            }
+
+            function saveColor(part, color) {
+                // just looping through the array and finding the 
+                // one being requested, then updating its color.
+                $.each(liveColors, function (i, pt) {
+                    if (pt.bdpt == part) {
+                        pt.color = color;
+                    }
+                });
+            }
+
+         
+
+        });
+
+    </script>
+</body>
+</html>
